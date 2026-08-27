@@ -107,7 +107,8 @@ app.use(errorHandler);
 // ============================================================
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+
+  app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Serveur TechShop démarré sur http://localhost:${PORT}`);
   console.log(`📋 Environnement : ${process.env.NODE_ENV}`);
   console.log(`🔗 API Health    : http://localhost:${PORT}/api/health`);
