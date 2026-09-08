@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Middleware d'authentification JWT
-// Fichier : middleware/auth.js
-// ============================================================
-
 const jwt  = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -65,4 +60,26 @@ const genererToken = (userId) => {
   );
 };
 
-module.exports = { proteger, admin, genererToken };
+// ---- Authentification optionnelle (ne bloque jamais) ---------
+// Si un token valide est fourni, req.user est rempli ; sinon on
+// continue simplement sans utilisateur (utile pour les formulaires
+// publics qui peuvent être remplis connecté ou non).
+const optionnel = async (req, res, next) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (!token) return next();
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-motDePasse');
+    if (user && user.actif) req.user = user;
+  } catch {
+    // Token invalide : on ignore simplement, la route reste accessible
+  }
+  next();
+};
+
+module.exports = { proteger, admin, genererToken, optionnel };
+

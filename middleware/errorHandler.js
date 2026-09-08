@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Gestion centralisée des erreurs
-// Fichier : middleware/errorHandler.js
-// ============================================================
-
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message    = err.message    || 'Erreur interne du serveur';
@@ -59,3 +54,4 @@ class AppError extends Error {
 }
 
 module.exports = { errorHandler, AppError };
+

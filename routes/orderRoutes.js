@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Routes Commandes
-// Fichier : routes/orderRoutes.js
-// ============================================================
-
 const express = require('express');
 const router  = express.Router();
 const {
@@ -28,3 +23,4 @@ router.put('/admin/:id/statut',     proteger, admin, modifierStatutCommande);
 router.get('/admin/statistiques',   proteger, admin, statistiques);
 
 module.exports = router;
+

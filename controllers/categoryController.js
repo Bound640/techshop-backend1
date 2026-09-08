@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Contrôleur Catégories
-// Fichier : controllers/categoryController.js
-// ============================================================
-
 const Category  = require('../models/Category');
 const Product   = require('../models/Product');
 const { AppError } = require('../middleware/errorHandler');
@@ -80,10 +75,34 @@ const supprimerCategorie = async (req, res, next) => {
   }
 };
 
+// ---- GET /api/categories/admin/toutes  [Admin] -----------------
+const listerCategoriesAdmin = async (req, res, next) => {
+  try {
+    const categories = await Category.find({}).sort({ ordre: 1, nom: 1 }).lean();
+    res.status(200).json({ success: true, categories });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- PUT /api/categories/admin/:id/reactiver  [Admin] -----------
+const reactiverCategorie = async (req, res, next) => {
+  try {
+    const cat = await Category.findByIdAndUpdate(req.params.id, { actif: true }, { new: true });
+    if (!cat) return next(new AppError('Catégorie introuvable.', 404));
+    res.status(200).json({ success: true, message: 'Catégorie réactivée.', categorie: cat });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   listerCategories,
   getCategorie,
   creerCategorie,
   modifierCategorie,
   supprimerCategorie,
+  listerCategoriesAdmin,
+  reactiverCategorie,
 };
+

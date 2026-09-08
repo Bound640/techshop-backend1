@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Modèle Catégorie
-// Fichier : models/Category.js
-// ============================================================
-
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema(
@@ -42,3 +37,4 @@ categorySchema.pre('save', function (next) {
 });
 
 module.exports = mongoose.model('Category', categorySchema);
+

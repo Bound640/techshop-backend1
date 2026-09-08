@@ -1,8 +1,4 @@
-// ============================================================
-// TechShop Backend — Contrôleur Authentification
-// Fichier : controllers/authController.js
-// ============================================================
-
+const crypto       = require('crypto');
 const User        = require('../models/User');
 const { genererToken } = require('../middleware/auth');
 const { AppError }    = require('../middleware/errorHandler');
@@ -131,4 +127,86 @@ const changerMotDePasse = async (req, res, next) => {
   }
 };
 
-module.exports = { inscription, connexion, moi, mettreAJourProfil, changerMotDePasse };
+// ---- POST /api/auth/mot-de-passe-oublie ----------------------
+const motDePasseOublie = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return next(new AppError('Email requis.', 400));
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // Réponse volontairement identique que l'utilisateur existe ou non
+    // (on ne révèle jamais si un email est enregistré, par sécurité)
+    const reponseGenerique = {
+      success: true,
+      message: 'Si un compte existe avec cet email, un lien de réinitialisation a été généré.',
+    };
+
+    if (!user) {
+      return res.status(200).json(reponseGenerique);
+    }
+
+    const tokenBrut = user.genererTokenReset();
+    await user.save({ validateBeforeSave: false });
+
+    const lienReset = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reinitialiser-mot-de-passe/${tokenBrut}`;
+
+    // Pas de service d'email configuré pour la soutenance : on affiche
+    // le lien côté serveur (console) et on le renvoie aussi en dev
+    // pour pouvoir tester la démo sans boîte mail réelle.
+    console.log('\n📧 Lien de réinitialisation du mot de passe :');
+    console.log('   ' + lienReset + '\n');
+
+    res.status(200).json({
+      ...reponseGenerique,
+      ...(process.env.NODE_ENV === 'development' && { lienDev: lienReset }),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- PUT /api/auth/reinitialiser-mot-de-passe/:token ---------
+const reinitialiserMotDePasse = async (req, res, next) => {
+  try {
+    const { nouveauMotDePasse } = req.body;
+    if (!nouveauMotDePasse || nouveauMotDePasse.length < 8) {
+      return next(new AppError('Le nouveau mot de passe doit faire au moins 8 caractères.', 400));
+    }
+
+    const tokenHache = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: tokenHache,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select('+motDePasse +resetPasswordToken +resetPasswordExpire');
+
+    if (!user) {
+      return next(new AppError('Lien de réinitialisation invalide ou expiré.', 400));
+    }
+
+    user.motDePasse = nouveauMotDePasse;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    const token = genererToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Mot de passe réinitialisé avec succès.',
+      token,
+      user: user.toPublicJSON(),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  inscription, connexion, moi, mettreAJourProfil, changerMotDePasse,
+  motDePasseOublie, reinitialiserMotDePasse,
+};
+

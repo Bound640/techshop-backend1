@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Contrôleur Produits
-// Fichier : controllers/productController.js
-// ============================================================
-
 const Product   = require('../models/Product');
 const { AppError } = require('../middleware/errorHandler');
 
@@ -159,6 +154,34 @@ const getProduitsVedettes = async (req, res, next) => {
   }
 };
 
+// ---- GET /api/produits/admin/tous  [Admin] --------------------
+// Comme listerProduits mais sans filtrer les produits désactivés,
+// pour que l'admin puisse les retrouver et les réactiver.
+const listerProduitsAdmin = async (req, res, next) => {
+  try {
+    const produits = await Product.find({})
+      .populate('categorie', 'nom slug icone')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({ success: true, total: produits.length, produits });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- PUT /api/produits/admin/:id/reactiver  [Admin] -----------
+const reactiverProduit = async (req, res, next) => {
+  try {
+    const produit = await Product.findByIdAndUpdate(req.params.id, { actif: true }, { new: true });
+    if (!produit) return next(new AppError('Produit introuvable.', 404));
+
+    res.status(200).json({ success: true, message: 'Produit réactivé.', produit });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   listerProduits,
   getProduit,
@@ -166,4 +189,7 @@ module.exports = {
   modifierProduit,
   supprimerProduit,
   getProduitsVedettes,
+  listerProduitsAdmin,
+  reactiverProduit,
 };
+

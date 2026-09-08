@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Modèle Commande
-// Fichier : models/Order.js
-// ============================================================
-
 const mongoose = require('mongoose');
 
 const ligneCommandeSchema = new mongoose.Schema({
@@ -95,3 +90,4 @@ orderSchema.pre('save', function (next) {
 });
 
 module.exports = mongoose.model('Order', orderSchema);
+

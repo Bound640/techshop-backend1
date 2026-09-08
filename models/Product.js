@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Modèle Produit
-// Fichier : models/Product.js
-// ============================================================
-
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema(
@@ -86,7 +81,8 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ nom: 'text', description: 'text' });
 
 // ---- Générer le slug depuis le nom ---------------------------
-productSchema.pre('save', function (next) {
+
+  productSchema.pre('validate', function (next) {
   if (this.isModified('nom')) {
     this.slug = this.nom
       .toLowerCase()
@@ -105,3 +101,4 @@ productSchema.virtual('imagePrincipale').get(function () {
 });
 
 module.exports = mongoose.model('Product', productSchema);
+

@@ -1,8 +1,3 @@
-// ============================================================
-// TechShop Backend — Contrôleur Commandes
-// Fichier : controllers/orderController.js
-// ============================================================
-
 const Order   = require('../models/Order');
 const Product = require('../models/Product');
 const { AppError } = require('../middleware/errorHandler');
@@ -266,3 +261,4 @@ module.exports = {
   modifierStatutCommande,
   statistiques,
 };
+

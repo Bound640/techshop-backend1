@@ -1,16 +1,13 @@
-// ============================================================
-// TechShop Backend — Serveur Express principal
-// Fichier : server.js
-// ============================================================
-
 require('dotenv').config();
 const express     = require('express');
+const path        = require('path');
 const cors        = require('cors');
 const helmet      = require('helmet');
 const morgan      = require('morgan');
 const rateLimit   = require('express-rate-limit');
 
 const connectDB        = require('./config/db');
+const { dbEstConnectee } = connectDB;
 const { errorHandler } = require('./middleware/errorHandler');
 
 // ---- Routes -------------------------------------------------
@@ -18,6 +15,8 @@ const authRoutes     = require('./routes/authRoutes');
 const productRoutes  = require('./routes/productRoutes');
 const orderRoutes    = require('./routes/orderRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const userRoutes     = require('./routes/userRoutes');
+const supportRoutes  = require('./routes/supportRoutes');
 
 // ---- Initialisation -----------------------------------------
 const app = express();
@@ -39,7 +38,7 @@ app.use(cors({
     const autorise =
       /^http:\/\/localhost:\d+$/.test(origin) ||      // tout port localhost
       /^http:\/\/127\.0\.0\.1:\d+$/.test(origin) ||    // tout port 127.0.0.1
-      origin === 'https://techshop-isep.vercel.app';   // production
+      origin === 'https://techshop-frontend1-mocha.vercel.app';   // production
 
     if (autorise) {
       callback(null, true);
@@ -75,10 +74,30 @@ if (process.env.NODE_ENV === 'development') {
 //  ROUTES API
 // ============================================================
 
-app.use('/api/auth',       authRoutes);
-app.use('/api/produits',   productRoutes);
-app.use('/api/commandes',  orderRoutes);
-app.use('/api/categories', categoryRoutes);
+// Fichiers uploadés (pièces jointes du formulaire de support)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ---- Garde-fou : base de données indisponible ----------------
+// Évite que les requêtes /api/* restent bloquées indéfiniment
+// (et donc un "Failed to fetch" côté navigateur) quand MongoDB
+// n'est pas joignable — renvoie une erreur claire à la place.
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health') return next();
+  if (!dbEstConnectee()) {
+    return res.status(503).json({
+      success: false,
+      message: 'Base de données indisponible pour le moment. Le serveur réessaie de se reconnecter automatiquement — réessayez dans quelques secondes.',
+    });
+  }
+  next();
+});
+
+app.use('/api/auth',         authRoutes);
+app.use('/api/produits',     productRoutes);
+app.use('/api/commandes',    orderRoutes);
+app.use('/api/categories',   categoryRoutes);
+app.use('/api/utilisateurs', userRoutes);
+app.use('/api/support',      supportRoutes);
 
 // ---- Route de santé (health check) -------------------------
 app.get('/api/health', (req, res) => {
@@ -87,6 +106,7 @@ app.get('/api/health', (req, res) => {
     message: 'API TechShop opérationnelle 🚀',
     version: '1.0.0',
     env:     process.env.NODE_ENV,
+    baseDeDonnees: dbEstConnectee() ? 'connectée' : 'déconnectée',
     date:    new Date().toISOString(),
   });
 });

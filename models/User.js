@@ -1,10 +1,6 @@
-// ============================================================
-// TechShop Backend — Modèle Utilisateur
-// Fichier : models/User.js
-// ============================================================
-
 const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
+const crypto   = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
@@ -49,6 +45,8 @@ const userSchema = new mongoose.Schema(
     },
     telephone: { type: String, default: '' },
     actif:     { type: Boolean, default: true },
+    resetPasswordToken:  { type: String, select: false },
+    resetPasswordExpire: { type: Date,   select: false },
   },
   {
     timestamps: true, // createdAt, updatedAt automatiques
@@ -83,4 +81,13 @@ userSchema.methods.toPublicJSON = function () {
   };
 };
 
+// ---- Méthode : générer un token de réinitialisation -----------
+userSchema.methods.genererTokenReset = function () {
+  const tokenBrut = crypto.randomBytes(32).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(tokenBrut).digest('hex');
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
+  return tokenBrut; // le token brut est envoyé au client, seul le hash est stocké
+};
+
 module.exports = mongoose.model('User', userSchema);
+
