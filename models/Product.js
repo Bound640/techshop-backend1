@@ -27,6 +27,11 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    marque: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     stock: {
       type: Number,
       required: [true, 'Le stock est requis'],

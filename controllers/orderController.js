@@ -31,7 +31,7 @@ const creerCommande = async (req, res, next) => {
         nomProduit:   produit.nom,
         imageProduit: produit.images[0]?.url || '',
         quantite:     article.quantity,
-        prixUnitaire: produit.prix,
+        prixUnitaire: produit.prixPromo || produit.prix,
       });
 
       // Décrémenter le stock

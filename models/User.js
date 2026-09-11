@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
     actif:     { type: Boolean, default: true },
     resetPasswordToken:  { type: String, select: false },
     resetPasswordExpire: { type: Date,   select: false },
+    favoris: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: [] }],
   },
   {
     timestamps: true, // createdAt, updatedAt automatiques
@@ -77,6 +78,7 @@ userSchema.methods.toPublicJSON = function () {
     role:      this.role,
     adresse:   this.adresse,
     telephone: this.telephone,
+    favoris:   this.favoris || [],
     createdAt: this.createdAt,
   };
 };

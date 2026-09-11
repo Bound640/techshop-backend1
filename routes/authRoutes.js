@@ -8,6 +8,8 @@ const {
   changerMotDePasse,
   motDePasseOublie,
   reinitialiserMotDePasse,
+  basculerFavori,
+  listerFavoris,
 } = require('../controllers/authController');
 const { proteger } = require('../middleware/auth');
 
@@ -21,6 +23,8 @@ router.put('/reinitialiser-mot-de-passe/:token', reinitialiserMotDePasse);
 router.get('/moi',                    proteger, moi);
 router.put('/profil',                 proteger, mettreAJourProfil);
 router.put('/changer-mot-de-passe',   proteger, changerMotDePasse);
+router.get('/favoris',                proteger, listerFavoris);
+router.post('/favoris/:produitId',    proteger, basculerFavori);
 
 module.exports = router;
 

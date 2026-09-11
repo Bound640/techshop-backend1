@@ -9,11 +9,13 @@ const {
   getProduitsVedettes,
   listerProduitsAdmin,
   reactiverProduit,
+  listerMarques,
 } = require('../controllers/productController');
 const { proteger, admin } = require('../middleware/auth');
 
 // ---- Routes publiques ---------------------------------------
 router.get('/vedettes',    getProduitsVedettes);
+router.get('/marques',     listerMarques);
 router.get('/admin/tous',  proteger, admin, listerProduitsAdmin);
 router.get('/',            listerProduits);
 router.get('/:id',         getProduit);
