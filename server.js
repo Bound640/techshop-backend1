@@ -17,7 +17,6 @@ const orderRoutes    = require('./routes/orderRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const userRoutes     = require('./routes/userRoutes');
 const supportRoutes  = require('./routes/supportRoutes');
-const avisRoutes     = require('./routes/avisRoutes');
 
 // ---- Initialisation -----------------------------------------
 const app = express();
@@ -99,7 +98,6 @@ app.use('/api/commandes',    orderRoutes);
 app.use('/api/categories',   categoryRoutes);
 app.use('/api/utilisateurs', userRoutes);
 app.use('/api/support',      supportRoutes);
-app.use('/api/avis',         avisRoutes);
 
 // ---- Route de santé (health check) -------------------------
 app.get('/api/health', (req, res) => {

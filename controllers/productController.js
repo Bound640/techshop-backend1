@@ -7,7 +7,7 @@ const listerProduits = async (req, res, next) => {
   try {
     const {
       categorie, search, sortBy = 'createdAt', order = 'desc',
-      page = 1, limit = 12, vedette, badge, minPrix, maxPrix, marque,
+      page = 1, limit = 12, vedette, badge, minPrix, maxPrix,
     } = req.query;
 
     const filtre = { actif: true };
@@ -15,7 +15,6 @@ const listerProduits = async (req, res, next) => {
     if (categorie) filtre.categorie = categorie;
     if (vedette)   filtre.vedette   = vedette === 'true';
     if (badge)     filtre.badge     = badge;
-    if (marque)    filtre.marque    = marque;
     if (minPrix || maxPrix) {
       filtre.prix = {};
       if (minPrix) filtre.prix.$gte = Number(minPrix);
@@ -183,16 +182,6 @@ const reactiverProduit = async (req, res, next) => {
   }
 };
 
-// ---- GET /api/produits/marques  [Public] -----------------------
-const listerMarques = async (req, res, next) => {
-  try {
-    const marques = await Product.distinct('marque', { actif: true, marque: { $ne: '' } });
-    res.status(200).json({ success: true, marques: marques.sort() });
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports = {
   listerProduits,
   getProduit,
@@ -202,6 +191,5 @@ module.exports = {
   getProduitsVedettes,
   listerProduitsAdmin,
   reactiverProduit,
-  listerMarques,
 };
 

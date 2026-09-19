@@ -205,50 +205,8 @@ const reinitialiserMotDePasse = async (req, res, next) => {
   }
 };
 
-// ---- POST /api/auth/favoris/:produitId  [Connecté] ------------
-// Ajoute ou retire un produit des favoris (bascule)
-const basculerFavori = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user._id);
-    const { produitId } = req.params;
-
-    const index = user.favoris.findIndex((id) => String(id) === produitId);
-    let estFavori;
-    if (index === -1) {
-      user.favoris.push(produitId);
-      estFavori = true;
-    } else {
-      user.favoris.splice(index, 1);
-      estFavori = false;
-    }
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      estFavori,
-      message: estFavori ? 'Ajouté aux favoris.' : 'Retiré des favoris.',
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// ---- GET /api/auth/favoris  [Connecté] --------------------------
-const listerFavoris = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user._id).populate({
-      path: 'favoris',
-      populate: { path: 'categorie', select: 'nom slug icone' },
-    });
-    res.status(200).json({ success: true, favoris: user.favoris });
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports = {
   inscription, connexion, moi, mettreAJourProfil, changerMotDePasse,
   motDePasseOublie, reinitialiserMotDePasse,
-  basculerFavori, listerFavoris,
 };
 
