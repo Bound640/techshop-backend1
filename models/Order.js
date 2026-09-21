@@ -81,7 +81,7 @@ orderSchema.pre('save', async function (next) {
 });
 
 // ---- Calcul automatique du total ----------------------------
-orderSchema.pre('save', function (next) {
+orderSchema.pre('validate', function (next) {
   this.sousTotal = this.lignes.reduce((s, l) => s + l.quantite * l.prixUnitaire, 0);
   this.tva       = Math.round(this.sousTotal * 0.18);
   this.fraisLivraison = this.sousTotal >= 30000 ? 0 : 2500;
