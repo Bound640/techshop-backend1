@@ -8,6 +8,8 @@ const {
   changerMotDePasse,
   motDePasseOublie,
   reinitialiserMotDePasse,
+  favoris,
+basculerFavori,
 } = require('../controllers/authController');
 const { proteger } = require('../middleware/auth');
 
@@ -16,6 +18,8 @@ router.post('/inscription', inscription);
 router.post('/connexion',   connexion);
 router.post('/mot-de-passe-oublie', motDePasseOublie);
 router.put('/reinitialiser-mot-de-passe/:token', reinitialiserMotDePasse);
+router.get('/favoris', proteger, favoris);
+router.post('/favoris/:produitId', proteger, basculerFavori);
 
 // Routes protégées (token requis)
 router.get('/moi',                    proteger, moi);
