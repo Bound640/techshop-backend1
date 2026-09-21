@@ -204,9 +204,63 @@ const reinitialiserMotDePasse = async (req, res, next) => {
     next(err);
   }
 };
+// ---- GET /api/auth/favoris -----------------------------------
+const favoris = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate('favoris');
+
+    if (!user) {
+      return next(new AppError('Utilisateur introuvable.', 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      favoris: user.favoris || [],
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ---- POST /api/auth/favoris/:produitId -----------------------
+const basculerFavori = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return next(new AppError('Utilisateur introuvable.', 404));
+    }
+
+    const produitId = req.params.produitId;
+
+    const index = user.favoris.findIndex(
+      id => id.toString() === produitId
+    );
+
+    if (index === -1) {
+      user.favoris.push(produitId);
+    } else {
+      user.favoris.splice(index, 1);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      favoris: user.favoris,
+      message: index === -1
+        ? 'Produit ajouté aux favoris.'
+        : 'Produit retiré des favoris.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   inscription, connexion, moi, mettreAJourProfil, changerMotDePasse,
-  motDePasseOublie, reinitialiserMotDePasse,
+  motDePasseOublie, reinitialiserMotDePasse, favoris,
+basculerFavori,
 };
 
