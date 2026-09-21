@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema(
     },
     telephone: { type: String, default: '' },
     actif:     { type: Boolean, default: true },
+    favoris: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Product',
+  default: [],
+}],
     resetPasswordToken:  { type: String, select: false },
     resetPasswordExpire: { type: Date,   select: false },
   },
@@ -77,6 +82,7 @@ userSchema.methods.toPublicJSON = function () {
     role:      this.role,
     adresse:   this.adresse,
     telephone: this.telephone,
+    favoris: this.favoris || [],
     createdAt: this.createdAt,
   };
 };
