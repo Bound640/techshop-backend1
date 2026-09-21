@@ -17,6 +17,7 @@ const orderRoutes    = require('./routes/orderRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const userRoutes     = require('./routes/userRoutes');
 const supportRoutes  = require('./routes/supportRoutes');
+const avisRoutes     = require('./routes/avisRoutes');
 
 // ---- Initialisation -----------------------------------------
 const app = express();
@@ -26,19 +27,16 @@ connectDB();
 //  MIDDLEWARES GLOBAUX
 // ============================================================
 
-// Sécurité HTTP headers
 app.use(helmet());
 
-// CORS — autoriser le front-end React (localhost, tous ports en dev)
 app.use(cors({
   origin: function (origin, callback) {
-    // Pas d'origine (ex: Postman, curl) → autorisé
     if (!origin) return callback(null, true);
 
     const autorise =
-      /^http:\/\/localhost:\d+$/.test(origin) ||      // tout port localhost
-      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin) ||    // tout port 127.0.0.1
-      origin === 'https://techshop-frontend1-mocha.vercel.app';   // production
+      /^http:\/\/localhost:\d+$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin) ||
+      origin === 'https://techshop-frontend1-mocha.vercel.app';
 
     if (autorise) {
       callback(null, true);
@@ -51,7 +49,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Limite de requêtes (100 req / 15 min par IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max:      100,
@@ -61,11 +58,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Parser JSON + URL-encoded
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logs des requêtes HTTP
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -74,13 +69,8 @@ if (process.env.NODE_ENV === 'development') {
 //  ROUTES API
 // ============================================================
 
-// Fichiers uploadés (pièces jointes du formulaire de support)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ---- Garde-fou : base de données indisponible ----------------
-// Évite que les requêtes /api/* restent bloquées indéfiniment
-// (et donc un "Failed to fetch" côté navigateur) quand MongoDB
-// n'est pas joignable — renvoie une erreur claire à la place.
 app.use('/api', (req, res, next) => {
   if (req.path === '/health') return next();
   if (!dbEstConnectee()) {
@@ -98,8 +88,8 @@ app.use('/api/commandes',    orderRoutes);
 app.use('/api/categories',   categoryRoutes);
 app.use('/api/utilisateurs', userRoutes);
 app.use('/api/support',      supportRoutes);
+app.use('/api/avis',         avisRoutes);
 
-// ---- Route de santé (health check) -------------------------
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -111,7 +101,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ---- Route inconnue -----------------------------------------
 app.all('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -119,23 +108,17 @@ app.all('*', (req, res) => {
   });
 });
 
-// ---- Gestion centralisée des erreurs -----------------------
 app.use(errorHandler);
-
-// ============================================================
-//  DÉMARRAGE
-// ============================================================
 
 const PORT = process.env.PORT || 3000;
 
-  app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Serveur TechShop démarré sur http://localhost:${PORT}`);
   console.log(`📋 Environnement : ${process.env.NODE_ENV}`);
   console.log(`🔗 API Health    : http://localhost:${PORT}/api/health`);
   console.log(`🌐 CORS          : tous les ports localhost autorisés en développement\n`);
 });
 
-// Empêcher le serveur de crasher silencieusement sur une erreur non gérée
 process.on('unhandledRejection', (err) => {
   console.error('❌ Erreur non gérée (Promise) :', err.message);
 });
